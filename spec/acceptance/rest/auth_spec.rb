@@ -1365,5 +1365,18 @@ describe Ably::Auth do
         expect(response).to be_a(Ably::Models::TokenDetails)
       end
     end
+
+    context 'when using JWT' do
+      it 'client pulls non nil stats when authenticating with a JWT encoded token' do
+        require 'jwt'
+        keyid = api_key.split(':').first
+        keySecret = api_key.split(':').last
+        payload = { exp: Time.now.to_i + 3600, iat: Time.now.to_i }
+        token = JWT.encode payload, keySecret, algorithm = 'HS256', header_fields = { kid: keyid }
+        client = Ably::Rest::Client.new(default_options.merge(token: token, environment: environment, protocol: protocol))
+        stats = client.stats
+        expect(stats).to_not be nil
+      end
+    end
   end
 end
